@@ -18,16 +18,22 @@ module.exports = {
 
         const user = await connection.select('*').from('users').where('email', email);
 
-        const saida = await bcrypt.compare(password, user[0].password);
-
-        //Invalid Password
-        if(!saida){
-            return res.status(400).send({error: 'Invalid password'});
+        if(user.length == 0){
+            return res.status(400).send({error: 'User not found'});
         }
 
+        const compare_password = await bcrypt.compare(password, user[0].password);
 
-        res.send({
-            user: user[0], 
+        if(!compare_password){
+            return res.status(400).send({error: 'Invalid password'})
+        }
+        
+        return res.send({
+            user_data: {
+                id: user[0].id,
+                username: user[0].username,
+                email: user[0].email
+            }, 
             token: generateToken({id: user[0].email})
         });
     }
